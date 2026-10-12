@@ -178,7 +178,6 @@ public class ARM9
 
 	private static long IndexOf(byte[] Data, byte[] Search)
 	{
-		long index = -1;
 		boolean found = false;
 		for(int i = 0; i < Data.length; i++)
 		{
@@ -194,9 +193,9 @@ public class ARM9
 					}
 				}
 			}
-			if(found) {break;}
+			if(found) {return i;}
 		}
-		return index;
+		return -1;
 	}
 	
 	/*

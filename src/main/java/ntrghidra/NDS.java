@@ -11,6 +11,7 @@
 package ntrghidra;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import ghidra.app.util.bin.BinaryReader;
 import ghidra.app.util.bin.ByteProvider;
@@ -210,7 +211,23 @@ public class NDS
 		er.setPointerIndex(Header.MainRomOffset);
 
 		MainRom = er.readNextByteArray(Header.MainSize);
-		if (er.readNextInt() == 0xDEC00621)
+
+		// A 12 byte footer included in MainSize needs to be stripped before decompression
+		if (MainRom.length >= 12 && IOUtil.ReadU32LE(MainRom, MainRom.length - 12) == 0xDEC00621)
+		{
+			// Determine offset from MainRom length
+			int footerOffset = MainRom.length - 12;
+
+			// Build footer object
+			StaticFooter = new NitroFooter();
+			StaticFooter.NitroCode = IOUtil.ReadU32LE(MainRom, footerOffset);
+			StaticFooter._start_ModuleParamsOffset = IOUtil.ReadU32LE(MainRom, footerOffset + 4);
+			StaticFooter.Unknown = IOUtil.ReadU32LE(MainRom, footerOffset + 8);
+
+			// Strip footer from MainRom
+			MainRom = Arrays.copyOf(MainRom, footerOffset);
+		}
+		else if (er.readNextInt() == 0xDEC00621)
 		{
 			er.setPointerIndex(er.getPointerIndex()-4);
 			StaticFooter = new NitroFooter(er);
